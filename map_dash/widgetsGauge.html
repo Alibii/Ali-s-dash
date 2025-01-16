@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gauge Chart Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        .gauge-container {
+            width: 400px;
+            margin: 0 auto;
+        }
+        .info {
+            margin-top: 20px;
+        }
+        .info p {
+            margin: 5px 0;
+        }
+/* Линии по продожам и категориям     */
+section {
+  vertical-align: top;
+  margin-top: 20px;
+}
+
+section:nth-of-type(odd) {
+  margin-right: 20px;
+}
+
+.style-1 {
+  list-style-type: none;
+  padding: 0;
+  width: 325px;
+  color: #000000;
+}
+
+.style-1 li {
+  position: relative;
+  height: 50px;
+  width: 380px;
+}
+
+.style-1 li em, .style-1 li span {
+  display: block;
+  border-bottom: 5px solid #FFE5E5;
+  padding-bottom: 5px;
+}
+
+.style-1 li em {
+  font-style: normal;
+  border-bottom-color: #DB6B6B;
+  position: absolute;
+  overflow: visible;
+  -webkit-animation: grow-width 2s;
+  animation: grow-width 2s;
+}
+
+.style-1 li span {
+  text-align: right;
+}
+
+    </style>
+</head>
+<body>
+    <div class="gauge-container">
+        <h3 id="manager-name">Иванов Иван</h3>
+        <div id="gaugeChart" style="width: 400px; height: 300px;"></div>
+        <div class="info">
+            <p>Текущий KPI: <span id="current-kpi">75%</span></p>
+            <p>В среднем KPI: <span id="avg-kpi">70%</span></p>
+            <p>Прогноз: <span id="forecast">80%</span></p>
+            <p>Прошлый KPI: <span id="previous-kpi">65%</span></p>
+        </div>
+    </div>
+    <div class="lines">
+        <section class="hidden">
+            <ul class="style-1">
+              <li>
+                <em>Среднее в день:</em>
+                <span></span>
+              </li>
+              <li>
+                <em>Среднее в месяц.</em>
+                <span></span>
+              </li>
+              <li>
+                <em>Среднее в квартал</em>
+                <span></span>
+              </li>
+              <li>
+                <em>Исходящие на год</em>
+                <span></span>
+              </li>
+            </ul>
+          </section>
+    </div>
+    <script>
+        const managers = [
+            {
+                name: "Иванов Иван",
+                current: 2297201,
+                avg: 2000000,
+                forecast: 2500000,
+                previous: 1500000,
+                max: 2500000
+            },
+            {
+                name: "Петров Петр",
+                current: 1850000,
+                avg: 1800000,
+                forecast: 2400000,
+                previous: 1700000,
+                max: 2500000
+            },
+            {
+                name: "Сидоров Сидор",
+                current: 1300000,
+                avg: 1400000,
+                forecast: 2000000,
+                previous: 1200000,
+                max: 2500000
+            }
+        ];
+
+        let currentManagerIndex = 0;
+        const gaugeChart = echarts.init(document.getElementById('gaugeChart'));
+
+        function updateGaugeChart(manager) {
+            const option = {
+                title: {
+                    left: 'center'
+                },
+                series: [
+                    {
+                        type: 'gauge',
+                        startAngle: 180,
+                        endAngle: 0,
+                        min: 0,
+                        max: manager.max,
+                        splitNumber: 5,
+                        axisLine: {
+                            lineStyle: {
+                                width: 10,
+                                color: [
+                                    [0.2, '#FF4500'],
+                                    [0.4, '#FFA500'],
+                                    [0.6, '#FFFF00'],
+                                    [0.8, '#ADFF2F'],
+                                    [1, '#00BFFF']
+                                ]
+                            }
+                        },
+                        pointer: {
+                            length: '70%',
+                            width: 6
+                        },
+                        axisTick: {
+                            distance: -20,
+                            length: 8,
+                            lineStyle: {
+                                color: '#000'
+                            }
+                        },
+                        splitLine: {
+                            distance: -20,
+                            length: 15,
+                            lineStyle: {
+                                color: '#000'
+                            }
+                        },
+                        axisLabel: {
+                            distance: -30,
+                            color: '#000',
+                            fontSize: 10
+                        },
+                        title: {
+                            show: false
+                        },
+                        detail: {
+                            valueAnimation: true,
+                            fontSize: 20,
+                            offsetCenter: [0, '50%'],
+                            formatter: `{value} / ${manager.max}`
+                        },
+                        data: [
+                            {
+                                value: manager.current
+                            }
+                        ]
+                    }
+                ]
+            };
+
+            gaugeChart.setOption(option);
+        }
+
+        function updateManagerData() {
+            const manager = managers[currentManagerIndex];
+
+            // Обновляем имя менеджера
+            document.getElementById('manager-name').innerText = manager.name;
+
+            // Обновляем текстовые показатели
+            document.getElementById('current-kpi').innerText = `${manager.current.toLocaleString()} (${Math.round((manager.current / manager.max) * 100)}%)`;
+            document.getElementById('avg-kpi').innerText = `${manager.avg.toLocaleString()} (${Math.round((manager.avg / manager.max) * 100)}%)`;
+            document.getElementById('forecast').innerText = `${manager.forecast.toLocaleString()} (${Math.round((manager.forecast / manager.max) * 100)}%)`;
+            document.getElementById('previous-kpi').innerText = `${manager.previous.toLocaleString()} (${Math.round((manager.previous / manager.max) * 100)}%)`;
+
+            // Обновляем график
+            updateGaugeChart(manager);
+
+            // Переходим к следующему менеджеру
+            currentManagerIndex = (currentManagerIndex + 1) % managers.length;
+        }
+
+        // Первоначальное заполнение данных
+        updateManagerData();
+
+        // Смена данных каждые 15 секунд
+        setInterval(updateManagerData, 15000);
+    </script>
+</body>
+</html>

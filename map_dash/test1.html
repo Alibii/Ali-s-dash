@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Dashboard</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2f;
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .dashboard {
+            display: grid;
+            grid-template-areas: 
+                "header header"
+                "map widgets";
+            grid-template-columns: 2fr 1fr;
+            grid-gap: 20px;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        header {
+            grid-area: header;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #252539;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #map {
+            grid-area: map;
+            width: 100%;
+            height: 400px;
+            background: #2c2c44;
+            border-radius: 8px;
+            position: relative;
+        }
+        .widgets {
+            grid-area: widgets;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            background: #252539;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .chart-container {
+            height: 200px;
+            position: relative;
+        }
+        canvas {
+            max-width: 100%;
+        }
+        .toggle {
+            display: flex;
+            gap: 10px;
+        }
+        .toggle button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .toggle button.active {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Interactive Dashboard</h1>
+        <div class="toggle">
+            <button id="dayBtn" class="active">D</button>
+            <button id="monthBtn">M</button>
+        </div>
+    </header>
+
+    <div class="dashboard">
+        <!-- Map -->
+        <svg id="map"></svg>
+
+        <!-- Widgets -->
+        <div class="widgets">
+            <div class="card">
+                <h2>Total Sales</h2>
+                <div id="totalSales">₸0</div>
+            </div>
+            <div class="card">
+                <h2>Error Distribution</h2>
+                <div class="chart-container">
+                    <canvas id="errorChart"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <h2>Top Sellers</h2>
+                <div class="chart-container">
+                    <canvas id="topSellersChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle functionality
+        const dayBtn = document.getElementById('dayBtn');
+        const monthBtn = document.getElementById('monthBtn');
+        const totalSalesElement = document.getElementById('totalSales');
+        
+        dayBtn.addEventListener('click', () => {
+            dayBtn.classList.add('active');
+            monthBtn.classList.remove('active');
+            updateDashboard('day');
+        });
+        
+        monthBtn.addEventListener('click', () => {
+            monthBtn.classList.add('active');
+            dayBtn.classList.remove('active');
+            updateDashboard('month');
+        });
+
+        function updateDashboard(mode) {
+            if (mode === 'day') {
+                animateCounter(totalSalesElement, 0, 123456.78, 3000);
+                // Update other widgets with day-specific data
+            } else {
+                animateCounter(totalSalesElement, 0, 987654.32, 3000);
+                // Update other widgets with month-specific data
+            }
+        }
+
+        // Counter Animation
+        function animateCounter(element, start, end, duration) {
+            let current = start;
+            const step = (end - start) / (duration / 16);
+            const interval = setInterval(() => {
+                current += step;
+                element.textContent = `₸${current.toFixed(2)}`;
+                if (current >= end) {
+                    clearInterval(interval);
+                    element.textContent = `₸${end.toFixed(2)}`;
+                }
+            }, 16);
+        }
+
+        // Chart.js Example
+        const errorCtx = document.getElementById('errorChart').getContext('2d');
+        new Chart(errorCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Client A', 'Client B', 'Client C'],
+                datasets: [{
+                    data: [10, 20, 30],
+                    backgroundColor: ['#007bff', '#28a745', '#ffc107']
+                }]
+            }
+        });
+
+        const topSellersCtx = document.getElementById('topSellersChart').getContext('2d');
+        new Chart(topSellersCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Seller A', 'Seller B', 'Seller C'],
+                datasets: [{
+                    data: [5000, 7000, 8000],
+                    backgroundColor: ['#ffc107', '#007bff', '#28a745']
+                }]
+            }
+        });
+    </script>
+</body>
+</html>
