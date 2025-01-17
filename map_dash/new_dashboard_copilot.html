@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard with Map</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-areas: 
+                "tables-horizontal"
+                "map-widgets"
+                "bottom-table";
+            grid-template-columns: 1fr;
+            grid-gap: 20px;
+            max-width: 1600px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .tables-horizontal {
+            grid-area: tables-horizontal;
+            display: flex;
+            gap: 10px;
+        }
+
+        .tables-horizontal .card {
+            flex: 1;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .map-widgets {
+            grid-area: map-widgets;
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+
+        .map {
+            flex: 0 0 800px;
+            height: 600px;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        .widgets {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            width: auto;
+            height: auto;
+            background: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .bottom-table {
+            grid-area: bottom-table;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="dashboard">        
+        <!-- Horizontal Tables -->
+        <div class="tables-horizontal">
+            <div class="card">
+                <h2>2) Ошибки в разрезе клиентов</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ФИО</th>
+                            <th>Телефон</th>
+                            <th>Время</th>
+                            <th>Тип ошибки</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Иванов Иван</td>
+                            <td>+7 777 123 45 67</td>
+                            <td>10:00</td>
+                            <td>Ошибка 1</td>
+                        </tr>
+                        <tr>
+                            <td>Петров Петр</td>
+                            <td>+7 777 234 56 78</td>
+                            <td>11:00</td>
+                            <td>Ошибка 2</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>6) Продукты в разрезе клиентов</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Продукт</th>
+                            <th>Алматы</th>
+                            <th>Астана</th>
+                            <th>Общее</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Автокредит</td>
+                            <td>10</td>
+                            <td>15</td>
+                            <td>25</td>
+                        </tr>
+                        <tr>
+                            <td>Ипотека</td>
+                            <td>8</td>
+                            <td>12</td>
+                            <td>20</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Новая таблица 1: Сравнение регионов</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Регион</th>
+                            <th>Продажи</th>
+                            <th>План</th>
+                            <th>Процент выполнения</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Алматы</td>
+                            <td>150</td>
+                            <td>200</td>
+                            <td>75%</td>
+                        </tr>
+                        <tr>
+                            <td>Астана</td>
+                            <td>100</td>
+                            <td>150</td>
+                            <td>67%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Map and Widgets -->
+        <div class="map-widgets">
+            <div class="map">
+                <svg id="map"></svg>
+            </div>
+            <div class="widgets">
+                <div class="card">
+                    <h2>1) Виды ошибок и количество:</h2>
+                    <canvas id="myChart"></canvas>
+                </div>
+                <div class="card">
+                    <h2>3) Текущие и среднедневные продажи:</h2>
+                    <canvas id="salesTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Table -->
+        <div class="bottom-table">
+            <div class="card">
+                <h2>Новая таблица 2: Статистика продаж</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Месяц</th>
+                            <th>Продажи</th>
+                            <th>Рост (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Январь</td>
+                            <td>120</td>
+                            <td>10%</td>
+                        </tr>
+                        <tr>
+                            <td>Февраль</td>
+                            <td>140</td>
+                            <td>16.7%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+       
+       const width = 800;
+        const height = 600;
+
+        const svg = d3.select("#map");
+
+        // Проекция карты
+        const projection = d3.geoMercator()
+            .scale(1000) // Масштаб карты
+            .center([67, 48]) // Центр Казахстана
+            .translate([width / 2, height / 2]);
+
+        const path = d3.geoPath().projection(projection);
+
+    // Загрузка GeoJSON
+        d3.json('./data/kazakhstan-regions.json').then(data => {
+
+        const region1 = data.features.find(f => f.properties.name === "Ulytau");
+        const region2 = data.features.find(f => f.properties.name === "Karaganda");
+
+        const mergedRegion = turf.union(region1, region2);
+
+        console.log("Объединенный регион:", mergedRegion);
+
+        
+
+            // Отображение регионов
+            svg.selectAll("path")
+        .data(data.features)
+        .enter()
+        .append("path")
+        .attr("d", path)
+        .attr("fill", "#69b3a2")
+        .attr("stroke", "#fff")
+        .attr("stroke-width", 0.5)
+        .on("mouseover", function(event, d) {
+            d3.select(this)
+                .attr("fill", "#ffcc00")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 1); // Подсветка при наведении
+        })
+        .on("mouseout", function(event, d) {
+            d3.select(this)
+                .attr("fill", "#69b3a2")
+                .attr("stroke", "#fff")
+                .attr("stroke-width", 0.5); // Возврат стиля
+        });
+
+    // Добавление названий регионов
+    svg.selectAll("text")
+        .data(data.features)
+        .enter()
+        .append("text")
+        .attr("x", d => path.centroid(d)[0]) // Центр региона
+        .attr("y", d => path.centroid(d)[1])
+        .attr("text-anchor", "middle")
+        .attr("font-size", "10px")
+        .attr("fill", "#fff")
+        .text(d => d.properties.name); // Название региона
+}).catch(error => {
+    console.error("Ошибка загрузки GeoJSON:", error);
+});
+        // Total Sales Counter Animation
+        function animateCounter(elementId, start, end, duration) {
+            const element = document.getElementById(elementId);
+            let current = start;
+            const increment = (end - start) / (duration / 1000 * 60);
+            const interval = setInterval(() => {
+                current += increment;
+                element.innerHTML = `₸${current.toFixed(2)}`;
+                if (current >= end) {
+                    clearInterval(interval);
+                    element.innerHTML = `₸${end.toFixed(2)}`;
+                }
+            }, 16);
+        }
+
+        animateCounter('totalSales', 0, 1234567.89, 3000);
+
+        // Charts
+        const ctx = document.getElementById('myChart');
+
+        new Chart(ctx, {
+        type: 'bar',
+        data: {
+        labels: ['Ошибка 1', 'Ошибка 2', 'Ошибка 3', 'Ошибка 4', 'Ошибка 5'],
+        datasets: [{
+            label: 'Ошибки',
+            data: [12, 19, 3, 5, 2],
+            borderWidth: 1
+        }]
+        },
+        options: {
+        scales: {
+            y: {
+            beginAtZero: true
+            }
+        }
+        }
+        });
+    
+        // const errorCtx = document.getElementById('errorChart').getContext('2d');
+        // new Chart(errorCtx, {
+        //     type: 'pie',
+        //     data: {
+        //         labels: ['Client A', 'Client B', 'Client C'],
+        //         datasets: [{
+        //             data: [10, 15, 5],
+        //             backgroundColor: ['#007bff', '#28a745', '#ffc107'],
+        //         }]
+        //     }
+        // });
+
+        const salesTrendCtx = document.getElementById('salesTrendChart').getContext('2d');
+        new Chart(salesTrendCtx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [
+                    {
+                        label: 'Текущие продажи',
+                        data: [120, 150, 180, 200, 220, 190, 210],
+                        borderColor: '#007bff',
+                        fill: false
+                    },
+                    {
+                        label: 'Средневные продажи',
+                        data: [100, 130, 150, 170, 190, 180, 200],
+                        borderColor: '#28a745',
+                        fill: false
+                    }
+                ]
+            }
+        });
+
+        const topSellersCtx = document.getElementById('topSellersChart').getContext('2d');
+        new Chart(topSellersCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Seller A', 'Seller B', 'Seller C'],
+                datasets: [{
+                    label: 'Sales',
+                    data: [5000, 7000, 4000],
+                    backgroundColor: ['#ffc107', '#007bff', '#28a745']
+                }]
+            }
+        });
+
+    </script>
+</body>
+</html>
